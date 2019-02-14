@@ -1,0 +1,17 @@
+overwrite: true
+schema: http://localhost:8080/query
+documents: ../api/src/**/*
+generates:
+  src/generated/graphql/index.tsx:
+    plugins:
+      - add:
+          - '// THIS IS A GENERATED FILE, DO NOT EDIT IT!'
+          - '// tslint:disable'
+      - typescript-common
+      - typescript-client
+      - typescript-react-apollo
+  ./graphql.schema.json:
+    plugins:
+      - 'introspection'
+config:
+  noNamespaces: true
