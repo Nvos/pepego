@@ -21,6 +21,10 @@ input NewTodo {
   userId: String!
 }
 
+input NewUser {
+    name: String!
+}
+
 input EditTodo {
   id: ID!
   text: String!
@@ -30,11 +34,12 @@ input EditTodo {
 
 type Mutation {
   createTodo(input: NewTodo!): Todo!
-  editTodo(input: EditTodo): Todo!
+  editTodo(input: EditTodo!): Todo
+  createUser(input: NewUser!): User!
 }
 
 type Subscription {
-  todoAdded: Todo!
+  todoChanges: Todo!
 }
 
 scalar Time

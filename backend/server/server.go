@@ -1,9 +1,10 @@
 package main
 
 import (
+	"github.com/gorilla/websocket"
+	"github.com/rs/cors"
 	"log"
 	"net/http"
-	"os"
 	"pepego/backend"
 
 	"github.com/99designs/gqlgen/handler"
@@ -12,14 +13,18 @@ import (
 const defaultPort = "8080"
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowCredentials: true,
+	})
 
-	http.Handle("/", handler.Playground("GraphQL playground", "/query"))
-	http.Handle("/query", handler.GraphQL(backend.NewExecutableSchema(backend.Config{Resolvers: &backend.Resolver{}})))
-
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	http.Handle("/", handler.Playground("Todo", "/query"))
+	http.Handle("/query", c.Handler(handler.GraphQL(backend.NewExecutableSchema(backend.New()),
+		handler.WebsocketUpgrader(websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		}))),
+	)
+	log.Fatal(http.ListenAndServe("127.0.0.1:8080", nil))
 }

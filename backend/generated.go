@@ -35,6 +35,7 @@ type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Subscription() SubscriptionResolver
+	Todo() TodoResolver
 }
 
 type DirectiveRoot struct {
@@ -43,7 +44,8 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Mutation struct {
 		CreateTodo func(childComplexity int, input NewTodo) int
-		EditTodo   func(childComplexity int, input *EditTodo) int
+		EditTodo   func(childComplexity int, input EditTodo) int
+		CreateUser func(childComplexity int, input NewUser) int
 	}
 
 	Query struct {
@@ -51,7 +53,7 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		TodoAdded func(childComplexity int) int
+		TodoChanges func(childComplexity int) int
 	}
 
 	Todo struct {
@@ -71,13 +73,19 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateTodo(ctx context.Context, input NewTodo) (Todo, error)
-	EditTodo(ctx context.Context, input *EditTodo) (Todo, error)
+	EditTodo(ctx context.Context, input EditTodo) (*Todo, error)
+	CreateUser(ctx context.Context, input NewUser) (User, error)
 }
 type QueryResolver interface {
 	Todos(ctx context.Context) ([]Todo, error)
 }
 type SubscriptionResolver interface {
-	TodoAdded(ctx context.Context) (<-chan Todo, error)
+	TodoChanges(ctx context.Context) (<-chan Todo, error)
+}
+type TodoResolver interface {
+	User(ctx context.Context, obj *Todo) (User, error)
+
+	LastEditedBy(ctx context.Context, obj *Todo) (*User, error)
 }
 
 func field_Mutation_createTodo_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
@@ -97,15 +105,25 @@ func field_Mutation_createTodo_args(rawArgs map[string]interface{}) (map[string]
 
 func field_Mutation_editTodo_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	args := map[string]interface{}{}
-	var arg0 *EditTodo
+	var arg0 EditTodo
 	if tmp, ok := rawArgs["input"]; ok {
 		var err error
-		var ptr1 EditTodo
-		if tmp != nil {
-			ptr1, err = UnmarshalEditTodo(tmp)
-			arg0 = &ptr1
+		arg0, err = UnmarshalEditTodo(tmp)
+		if err != nil {
+			return nil, err
 		}
+	}
+	args["input"] = arg0
+	return args, nil
 
+}
+
+func field_Mutation_createUser_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 NewUser
+	if tmp, ok := rawArgs["input"]; ok {
+		var err error
+		arg0, err = UnmarshalNewUser(tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -195,7 +213,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditTodo(childComplexity, args["input"].(*EditTodo)), true
+		return e.complexity.Mutation.EditTodo(childComplexity, args["input"].(EditTodo)), true
+
+	case "Mutation.createUser":
+		if e.complexity.Mutation.CreateUser == nil {
+			break
+		}
+
+		args, err := field_Mutation_createUser_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(NewUser)), true
 
 	case "Query.todos":
 		if e.complexity.Query.Todos == nil {
@@ -204,12 +234,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Todos(childComplexity), true
 
-	case "Subscription.todoAdded":
-		if e.complexity.Subscription.TodoAdded == nil {
+	case "Subscription.todoChanges":
+		if e.complexity.Subscription.TodoChanges == nil {
 			break
 		}
 
-		return e.complexity.Subscription.TodoAdded(childComplexity), true
+		return e.complexity.Subscription.TodoChanges(childComplexity), true
 
 	case "Todo.id":
 		if e.complexity.Todo.Id == nil {
@@ -367,6 +397,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "editTodo":
 			out.Values[i] = ec._Mutation_editTodo(ctx, field)
+		case "createUser":
+			out.Values[i] = ec._Mutation_createUser(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -434,7 +466,42 @@ func (ec *executionContext) _Mutation_editTodo(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditTodo(rctx, args["input"].(*EditTodo))
+		return ec.resolvers.Mutation().EditTodo(rctx, args["input"].(EditTodo))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*Todo)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._Todo(ctx, field.Selections, res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Mutation_createUser_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Mutation",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateUser(rctx, args["input"].(NewUser))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -442,11 +509,11 @@ func (ec *executionContext) _Mutation_editTodo(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(Todo)
+	res := resTmp.(User)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 
-	return ec._Todo(ctx, field.Selections, &res)
+	return ec._User(ctx, field.Selections, &res)
 }
 
 var queryImplementors = []string{"Query"}
@@ -630,21 +697,21 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	}
 
 	switch fields[0].Name {
-	case "todoAdded":
-		return ec._Subscription_todoAdded(ctx, fields[0])
+	case "todoChanges":
+		return ec._Subscription_todoChanges(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
 }
 
-func (ec *executionContext) _Subscription_todoAdded(ctx context.Context, field graphql.CollectedField) func() graphql.Marshaler {
+func (ec *executionContext) _Subscription_todoChanges(ctx context.Context, field graphql.CollectedField) func() graphql.Marshaler {
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Field: field,
 	})
 	// FIXME: subscriptions are missing request middleware stack https://github.com/99designs/gqlgen/issues/259
 	//          and Tracer stack
 	rctx := ctx
-	results, err := ec.resolvers.Subscription().TodoAdded(rctx)
+	results, err := ec.resolvers.Subscription().TodoChanges(rctx)
 	if err != nil {
 		ec.Error(ctx, err)
 		return nil
@@ -668,6 +735,7 @@ var todoImplementors = []string{"Todo"}
 func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj *Todo) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, todoImplementors)
 
+	var wg sync.WaitGroup
 	out := graphql.NewOrderedMap(len(fields))
 	invalid := false
 	for i, field := range fields {
@@ -692,22 +760,30 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 				invalid = true
 			}
 		case "user":
-			out.Values[i] = ec._Todo_user(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Todo_user(ctx, field, obj)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
 		case "createdAt":
 			out.Values[i] = ec._Todo_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
 		case "lastEditedBy":
-			out.Values[i] = ec._Todo_lastEditedBy(ctx, field, obj)
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Todo_lastEditedBy(ctx, field, obj)
+				wg.Done()
+			}(i, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-
+	wg.Wait()
 	if invalid {
 		return graphql.Null
 	}
@@ -808,7 +884,7 @@ func (ec *executionContext) _Todo_user(ctx context.Context, field graphql.Collec
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
+		return ec.resolvers.Todo().User(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -863,7 +939,7 @@ func (ec *executionContext) _Todo_lastEditedBy(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LastEditedBy, nil
+		return ec.resolvers.Todo().LastEditedBy(rctx, obj)
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -2473,6 +2549,24 @@ func UnmarshalNewTodo(v interface{}) (NewTodo, error) {
 	return it, nil
 }
 
+func UnmarshalNewUser(v interface{}) (NewUser, error) {
+	var it NewUser
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) FieldMiddleware(ctx context.Context, obj interface{}, next graphql.Resolver) (ret interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2526,6 +2620,10 @@ input NewTodo {
   userId: String!
 }
 
+input NewUser {
+    name: String!
+}
+
 input EditTodo {
   id: ID!
   text: String!
@@ -2535,11 +2633,12 @@ input EditTodo {
 
 type Mutation {
   createTodo(input: NewTodo!): Todo!
-  editTodo(input: EditTodo): Todo!
+  editTodo(input: EditTodo!): Todo
+  createUser(input: NewUser!): User!
 }
 
 type Subscription {
-  todoAdded: Todo!
+  todoChanges: Todo!
 }
 
 scalar Time`},

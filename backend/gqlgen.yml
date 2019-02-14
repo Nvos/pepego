@@ -12,3 +12,11 @@ model:
 resolver:
   filename: resolver.go
   type: Resolver
+models:
+  Todo:
+    model: pepego/backend.Todo
+    fields:
+      user:
+        resolver: true
+      lastEditedBy:
+        resolver: true

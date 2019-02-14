@@ -2,10 +2,6 @@
 
 package backend
 
-import (
-	"time"
-)
-
 type EditTodo struct {
 	ID             string `json:"id"`
 	Text           string `json:"text"`
@@ -18,13 +14,8 @@ type NewTodo struct {
 	UserID string `json:"userId"`
 }
 
-type Todo struct {
-	ID           string    `json:"id"`
-	Text         string    `json:"text"`
-	Done         bool      `json:"done"`
-	User         User      `json:"user"`
-	CreatedAt    time.Time `json:"createdAt"`
-	LastEditedBy *User     `json:"lastEditedBy"`
+type NewUser struct {
+	Name string `json:"name"`
 }
 
 type User struct {

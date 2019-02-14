@@ -17,8 +17,8 @@
 *.out
 
 ### Go Patch ###
-/backend/vendor/
-/backend/Godeps/
+backend/vendor
+backend/Godeps
 
 ### Intellij+all ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
