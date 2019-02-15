@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@libs/api": "1.0.0",
     "@libs/models": "1.0.0",
     "@tools/react-scripts": "1.0.0",
     "@types/jest": "^24.0.4",
