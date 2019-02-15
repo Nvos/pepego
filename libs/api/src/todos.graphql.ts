@@ -18,3 +18,13 @@ export const TODOS_CHANGES = gql`
     }
   }
 `;
+
+export const TODO_CREATE = gql`
+  mutation CreateTodo($text: String!, $userId: String!) {
+    createTodo(input: { text: $text, userId: $userId }) {
+      id
+      text
+      done
+    }
+  }
+`;

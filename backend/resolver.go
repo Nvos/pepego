@@ -69,7 +69,7 @@ func (r *mutationResolver) EditTodo(ctx context.Context, input EditTodo) (*Todo,
 func (r *mutationResolver) CreateUser(ctx context.Context, input NewUser) (User, error) {
 	user := User {
 		Name: input.Name,
-		ID: uuid.NewV4().String(),
+		ID: GenerateUUID(),
 	}
 
 	r.Users[user.ID] = user
@@ -83,7 +83,7 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input NewTodo) (Todo,
 		CreatedAt: time.Now(),
 		Done: false,
 		User: input.UserID,
-		ID: uuid.NewV4().String(),
+		ID: GenerateUUID(),
 	}
 
 	r.Resolver.Todos[todo.ID] = todo
@@ -126,14 +126,19 @@ func New() Config {
 	return Config{
 		Resolvers: &Resolver{
 			Todos: map[string]Todo{},
-			Users: map[string]User{},
+			Users: map[string]User{
+				"7a0bd056-7845-4250-89bc-84c9df362774": {
+					Name: "Jeff",
+					ID: "7a0bd056-7845-4250-89bc-84c9df362774",
+				},
+			},
 			Observers: map[string]chan Todo{},
 		},
 	}
 }
 
 func (r *subscriptionResolver) TodoChanges(ctx context.Context) (<-chan Todo, error) {
-	id := uuid.NewV4().String()
+	id := GenerateUUID()
 	events := make(chan Todo, 1)
 
 	go func() {
@@ -148,4 +153,9 @@ func (r *subscriptionResolver) TodoChanges(ctx context.Context) (<-chan Todo, er
 	r.TodosChangesMutex.Unlock()
 
 	return events, nil
+}
+
+func GenerateUUID() string {
+	value, _ := uuid.NewV4()
+	return value.String()
 }

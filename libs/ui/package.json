@@ -1,0 +1,15 @@
+{
+  "name": "@libs/ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/styled-components": "^4.1.10",
+    "styled-components": "^4.1.3"
+  }
+}

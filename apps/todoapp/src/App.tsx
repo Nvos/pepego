@@ -53,10 +53,10 @@ class App extends Component {
               style={{ display: 'flex', padding: 12, justifyContent: 'center' }}
             >
               <Link style={{ padding: 12 }} to="/list">
-                About
+                Subscription
               </Link>
               <Link style={{ padding: 12 }} to="/details">
-                Topics
+                Pooling
               </Link>
             </div>
 
