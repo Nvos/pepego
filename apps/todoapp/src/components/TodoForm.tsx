@@ -15,6 +15,7 @@ import { TODOS_CHANGES, TODO_CREATE } from '@libs/api';
 import { Card, CardTitle } from '@libs/ui';
 import { produce } from 'immer';
 import { MutationProps, Mutation } from 'react-apollo';
+import UserSelect from './UserSelect';
 interface Props {}
 interface State {
   text: string;
@@ -54,14 +55,7 @@ class TodoForm extends React.Component<Props, State> {
               }}
             >
               <input onChange={this.setText} />
-              <select onChange={this.setUser}>
-                <option value={'7a0bd056-7845-4250-89bc-84c9df362774'}>
-                  Jeff
-                </option>
-                <option value={'7a0bd056-7845-4250-89bc-84c9df362674'}>
-                  Not Jeff
-                </option>
-              </select>
+              <UserSelect onChange={this.setUser} />
               {error && 'Error!'}
               <button type="submit">{loading ? 'Loading' : 'Add Todo'}</button>
             </form>

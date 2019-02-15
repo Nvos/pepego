@@ -63,7 +63,10 @@ class TodoList extends React.Component<TodosProps<Props>> {
             <Card key={it.id} style={{ width: 300 }}>
               <CardTitle>{it.id}</CardTitle>
               {it.text}
-              <CardFooter>{it.user.name}</CardFooter>
+              <CardFooter>
+                <p>Created by {it.user.name} </p>
+                <p>at {it.createdAt}</p>
+              </CardFooter>
             </Card>
           ))}
         </div>

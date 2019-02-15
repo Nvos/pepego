@@ -5,9 +5,19 @@ export const TODOS = gql`
     todos {
       id
       text
+      createdAt
       user {
         name
       }
+    }
+  }
+`;
+
+export const USERS = gql`
+  query Users {
+    users {
+      id
+      name
     }
   }
 `;
@@ -18,6 +28,7 @@ export const TODOS_CHANGES = gql`
       id
       text
       done
+      createdAt
       user {
         name
       }
@@ -31,6 +42,7 @@ export const TODO_CREATE = gql`
       id
       text
       done
+      createdAt
       user {
         name
       }

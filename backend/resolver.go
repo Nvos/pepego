@@ -24,6 +24,7 @@ type Resolver struct {
 }
 
 type queryResolver struct{ *Resolver }
+
 type subscriptionResolver struct{ *Resolver }
 
 type todoResolver struct{ *Resolver }
@@ -160,7 +161,16 @@ func (r *subscriptionResolver) TodoChanges(ctx context.Context) (<-chan Todo, er
 	return events, nil
 }
 
+func (r *queryResolver) Users(ctx context.Context) ([]User, error) {
+	var values []User
+
+	for _, value := range r.Resolver.Users {
+		values = append(values, value)
+	}
+
+	return values, nil
+}
+
 func GenerateUUID() string {
-	value, _ := uuid.NewV4()
-	return value.String()
+	return uuid.NewV4().String()
 }

@@ -44,11 +44,29 @@ export type TodosTodos = {
 
   text: string;
 
+  createdAt: Time;
+
   user: TodosUser;
 };
 
 export type TodosUser = {
   __typename?: 'User';
+
+  name: string;
+};
+
+export type UsersVariables = {};
+
+export type UsersQuery = {
+  __typename?: 'Query';
+
+  users: UsersUsers[];
+};
+
+export type UsersUsers = {
+  __typename?: 'User';
+
+  id: string;
 
   name: string;
 };
@@ -69,6 +87,8 @@ export type TodoChangesTodoChanges = {
   text: string;
 
   done: boolean;
+
+  createdAt: Time;
 
   user: TodoChangesUser;
 };
@@ -99,6 +119,8 @@ export type CreateTodoCreateTodo = {
 
   done: boolean;
 
+  createdAt: Time;
+
   user: CreateTodoUser;
 };
 
@@ -122,6 +144,7 @@ export const TodosDocument = gql`
     todos {
       id
       text
+      createdAt
       user {
         name
       }
@@ -161,12 +184,54 @@ export function TodosHOC<TProps, TChildProps = any>(
     TodosProps<TChildProps>
   >(TodosDocument, operationOptions);
 }
+export const UsersDocument = gql`
+  query Users {
+    users {
+      id
+      name
+    }
+  }
+`;
+export class UsersComponent extends React.Component<
+  Partial<ReactApollo.QueryProps<UsersQuery, UsersVariables>>
+> {
+  render() {
+    return (
+      <ReactApollo.Query<UsersQuery, UsersVariables>
+        query={UsersDocument}
+        {...(this as any)['props'] as any}
+      />
+    );
+  }
+}
+export type UsersProps<TChildProps = any> = Partial<
+  ReactApollo.DataProps<UsersQuery, UsersVariables>
+> &
+  TChildProps;
+export function UsersHOC<TProps, TChildProps = any>(
+  operationOptions:
+    | ReactApollo.OperationOption<
+        TProps,
+        UsersQuery,
+        UsersVariables,
+        UsersProps<TChildProps>
+      >
+    | undefined,
+) {
+  return ReactApollo.graphql<
+    TProps,
+    UsersQuery,
+    UsersVariables,
+    UsersProps<TChildProps>
+  >(UsersDocument, operationOptions);
+}
 export const TodoChangesDocument = gql`
   subscription TodoChanges {
     todoChanges {
       id
       text
       done
+      createdAt
       user {
         name
       }
@@ -214,6 +279,7 @@ export const CreateTodoDocument = gql`
       id
       text
       done
+      createdAt
       user {
         name
       }
