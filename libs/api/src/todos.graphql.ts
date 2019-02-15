@@ -5,8 +5,14 @@ export const TODOS = gql`
     todos {
       id
       text
-      createdAt
+      done
       user {
+        id
+        name
+      }
+      createdAt
+      lastEditedBy {
+        id
         name
       }
     }
@@ -28,8 +34,13 @@ export const TODOS_CHANGES = gql`
       id
       text
       done
-      createdAt
       user {
+        id
+        name
+      }
+      createdAt
+      lastEditedBy {
+        id
         name
       }
     }
@@ -42,8 +53,63 @@ export const TODO_CREATE = gql`
       id
       text
       done
-      createdAt
       user {
+        id
+        name
+      }
+      createdAt
+      lastEditedBy {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const TODOS_UPDATE = gql`
+  mutation EditTodo(
+    $id: ID!
+    $text: String
+    $done: Boolean
+    $lastEditedByID: ID!
+  ) {
+    editTodo(
+      input: {
+        id: $id
+        text: $text
+        done: $done
+        lastEditedById: $lastEditedByID
+      }
+    ) {
+      id
+      text
+      done
+      user {
+        id
+        name
+      }
+      createdAt
+      lastEditedBy {
+        id
+        name
+      }
+    }
+  }
+`;
+
+const TODO = gql`
+  query Todo($id: ID!) {
+    todo(id: $id) {
+      id
+      text
+      done
+      user {
+        id
+        name
+      }
+      createdAt
+      lastEditedBy {
+        id
         name
       }
     }

@@ -12,9 +12,9 @@ export interface NewTodo {
 export interface EditTodo {
   id: string;
 
-  text: string;
+  text?: Maybe<string>;
 
-  done: boolean;
+  done?: Maybe<boolean>;
 
   lastEditedById: string;
 }
@@ -44,13 +44,27 @@ export type TodosTodos = {
 
   text: string;
 
-  createdAt: Time;
+  done: boolean;
 
   user: TodosUser;
+
+  createdAt: Time;
+
+  lastEditedBy: Maybe<TodosLastEditedBy>;
 };
 
 export type TodosUser = {
   __typename?: 'User';
+
+  id: string;
+
+  name: string;
+};
+
+export type TodosLastEditedBy = {
+  __typename?: 'User';
+
+  id: string;
 
   name: string;
 };
@@ -88,13 +102,25 @@ export type TodoChangesTodoChanges = {
 
   done: boolean;
 
+  user: TodoChangesUser;
+
   createdAt: Time;
 
-  user: TodoChangesUser;
+  lastEditedBy: Maybe<TodoChangesLastEditedBy>;
 };
 
 export type TodoChangesUser = {
   __typename?: 'User';
+
+  id: string;
+
+  name: string;
+};
+
+export type TodoChangesLastEditedBy = {
+  __typename?: 'User';
+
+  id: string;
 
   name: string;
 };
@@ -119,13 +145,112 @@ export type CreateTodoCreateTodo = {
 
   done: boolean;
 
+  user: CreateTodoUser;
+
   createdAt: Time;
 
-  user: CreateTodoUser;
+  lastEditedBy: Maybe<CreateTodoLastEditedBy>;
 };
 
 export type CreateTodoUser = {
   __typename?: 'User';
+
+  id: string;
+
+  name: string;
+};
+
+export type CreateTodoLastEditedBy = {
+  __typename?: 'User';
+
+  id: string;
+
+  name: string;
+};
+
+export type EditTodoVariables = {
+  id: string;
+  text?: Maybe<string>;
+  done?: Maybe<boolean>;
+  lastEditedByID: string;
+};
+
+export type EditTodoMutation = {
+  __typename?: 'Mutation';
+
+  editTodo: Maybe<EditTodoEditTodo>;
+};
+
+export type EditTodoEditTodo = {
+  __typename?: 'Todo';
+
+  id: string;
+
+  text: string;
+
+  done: boolean;
+
+  user: EditTodoUser;
+
+  createdAt: Time;
+
+  lastEditedBy: Maybe<EditTodoLastEditedBy>;
+};
+
+export type EditTodoUser = {
+  __typename?: 'User';
+
+  id: string;
+
+  name: string;
+};
+
+export type EditTodoLastEditedBy = {
+  __typename?: 'User';
+
+  id: string;
+
+  name: string;
+};
+
+export type TodoVariables = {
+  id: string;
+};
+
+export type TodoQuery = {
+  __typename?: 'Query';
+
+  todo: Maybe<TodoTodo>;
+};
+
+export type TodoTodo = {
+  __typename?: 'Todo';
+
+  id: string;
+
+  text: string;
+
+  done: boolean;
+
+  user: TodoUser;
+
+  createdAt: Time;
+
+  lastEditedBy: Maybe<TodoLastEditedBy>;
+};
+
+export type TodoUser = {
+  __typename?: 'User';
+
+  id: string;
+
+  name: string;
+};
+
+export type TodoLastEditedBy = {
+  __typename?: 'User';
+
+  id: string;
 
   name: string;
 };
@@ -144,8 +269,14 @@ export const TodosDocument = gql`
     todos {
       id
       text
-      createdAt
+      done
       user {
+        id
+        name
+      }
+      createdAt
+      lastEditedBy {
+        id
         name
       }
     }
@@ -231,8 +362,13 @@ export const TodoChangesDocument = gql`
       id
       text
       done
-      createdAt
       user {
+        id
+        name
+      }
+      createdAt
+      lastEditedBy {
+        id
         name
       }
     }
@@ -279,8 +415,13 @@ export const CreateTodoDocument = gql`
       id
       text
       done
-      createdAt
       user {
+        id
+        name
+      }
+      createdAt
+      lastEditedBy {
+        id
         name
       }
     }
@@ -322,4 +463,122 @@ export function CreateTodoHOC<TProps, TChildProps = any>(
     CreateTodoVariables,
     CreateTodoProps<TChildProps>
   >(CreateTodoDocument, operationOptions);
+}
+export const EditTodoDocument = gql`
+  mutation EditTodo(
+    $id: ID!
+    $text: String
+    $done: Boolean
+    $lastEditedByID: ID!
+  ) {
+    editTodo(
+      input: {
+        id: $id
+        text: $text
+        done: $done
+        lastEditedById: $lastEditedByID
+      }
+    ) {
+      id
+      text
+      done
+      user {
+        id
+        name
+      }
+      createdAt
+      lastEditedBy {
+        id
+        name
+      }
+    }
+  }
+`;
+export class EditTodoComponent extends React.Component<
+  Partial<ReactApollo.MutationProps<EditTodoMutation, EditTodoVariables>>
+> {
+  render() {
+    return (
+      <ReactApollo.Mutation<EditTodoMutation, EditTodoVariables>
+        mutation={EditTodoDocument}
+        {...(this as any)['props'] as any}
+      />
+    );
+  }
+}
+export type EditTodoProps<TChildProps = any> = Partial<
+  ReactApollo.MutateProps<EditTodoMutation, EditTodoVariables>
+> &
+  TChildProps;
+export type EditTodoMutationFn = ReactApollo.MutationFn<
+  EditTodoMutation,
+  EditTodoVariables
+>;
+export function EditTodoHOC<TProps, TChildProps = any>(
+  operationOptions:
+    | ReactApollo.OperationOption<
+        TProps,
+        EditTodoMutation,
+        EditTodoVariables,
+        EditTodoProps<TChildProps>
+      >
+    | undefined,
+) {
+  return ReactApollo.graphql<
+    TProps,
+    EditTodoMutation,
+    EditTodoVariables,
+    EditTodoProps<TChildProps>
+  >(EditTodoDocument, operationOptions);
+}
+export const TodoDocument = gql`
+  query Todo($id: ID!) {
+    todo(id: $id) {
+      id
+      text
+      done
+      user {
+        id
+        name
+      }
+      createdAt
+      lastEditedBy {
+        id
+        name
+      }
+    }
+  }
+`;
+export class TodoComponent extends React.Component<
+  Partial<ReactApollo.QueryProps<TodoQuery, TodoVariables>>
+> {
+  render() {
+    return (
+      <ReactApollo.Query<TodoQuery, TodoVariables>
+        query={TodoDocument}
+        {...(this as any)['props'] as any}
+      />
+    );
+  }
+}
+export type TodoProps<TChildProps = any> = Partial<
+  ReactApollo.DataProps<TodoQuery, TodoVariables>
+> &
+  TChildProps;
+export function TodoHOC<TProps, TChildProps = any>(
+  operationOptions:
+    | ReactApollo.OperationOption<
+        TProps,
+        TodoQuery,
+        TodoVariables,
+        TodoProps<TChildProps>
+      >
+    | undefined,
+) {
+  return ReactApollo.graphql<
+    TProps,
+    TodoQuery,
+    TodoVariables,
+    TodoProps<TChildProps>
+  >(TodoDocument, operationOptions);
 }

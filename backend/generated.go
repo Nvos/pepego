@@ -50,6 +50,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Todos func(childComplexity int) int
+		Todo  func(childComplexity int, id string) int
 		Users func(childComplexity int) int
 	}
 
@@ -79,6 +80,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Todos(ctx context.Context) ([]Todo, error)
+	Todo(ctx context.Context, id string) (*Todo, error)
 	Users(ctx context.Context) ([]User, error)
 }
 type SubscriptionResolver interface {
@@ -131,6 +133,21 @@ func field_Mutation_createUser_args(rawArgs map[string]interface{}) (map[string]
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+
+}
+
+func field_Query_todo_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalID(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 
 }
@@ -235,6 +252,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Todos(childComplexity), true
+
+	case "Query.todo":
+		if e.complexity.Query.Todo == nil {
+			break
+		}
+
+		args, err := field_Query_todo_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Todo(childComplexity, args["id"].(string)), true
 
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
@@ -553,6 +582,12 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				wg.Done()
 			}(i, field)
+		case "todo":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_todo(ctx, field)
+				wg.Done()
+			}(i, field)
 		case "users":
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
@@ -635,6 +670,41 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 	}
 	wg.Wait()
 	return arr1
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_todo(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Query_todo_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Todo(rctx, args["id"].(string))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*Todo)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._Todo(ctx, field.Selections, res)
 }
 
 // nolint: vetshadow
@@ -2581,19 +2651,29 @@ func UnmarshalEditTodo(v interface{}) (EditTodo, error) {
 			}
 		case "text":
 			var err error
-			it.Text, err = graphql.UnmarshalString(v)
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.Text = &ptr1
+			}
+
 			if err != nil {
 				return it, err
 			}
 		case "done":
 			var err error
-			it.Done, err = graphql.UnmarshalBoolean(v)
+			var ptr1 bool
+			if v != nil {
+				ptr1, err = graphql.UnmarshalBoolean(v)
+				it.Done = &ptr1
+			}
+
 			if err != nil {
 				return it, err
 			}
 		case "lastEditedById":
 			var err error
-			it.LastEditedByID, err = graphql.UnmarshalString(v)
+			it.LastEditedByID, err = graphql.UnmarshalID(v)
 			if err != nil {
 				return it, err
 			}
@@ -2691,6 +2771,7 @@ type User {
 
 type Query {
   todos: [Todo!]!
+  todo(id: ID!): Todo
   users: [User!]!
 }
 
@@ -2705,9 +2786,9 @@ input NewUser {
 
 input EditTodo {
   id: ID!
-  text: String!
-  done: Boolean!
-  lastEditedById: String!
+  text: String
+  done: Boolean
+  lastEditedById: ID!
 }
 
 type Mutation {

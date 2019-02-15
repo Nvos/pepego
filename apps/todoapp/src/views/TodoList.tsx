@@ -1,19 +1,31 @@
+import {TODOS_CHANGES} from '@libs/api';
+import {TodosHOC, TodosProps, TodosTodos} from '@libs/models';
+import {Card, CardFooter, CardTitle} from '@libs/ui';
+import {produce} from 'immer';
 import React from 'react';
-import { TodosHOC, TodosQuery, TodosVariables, TodosProps } from '@libs/models';
-import { DataProps } from 'react-apollo';
-import { TODOS_CHANGES } from '@libs/api';
-import { Card, CardTitle, CardFooter } from '@libs/ui';
-import { produce } from 'immer';
+import EditTodo from "src/components/TodoEdit";
 import TodoForm from 'src/components/TodoForm';
+import UserSelect from "src/components/UserSelect";
 
-interface Props {}
+interface Props {
+}
 
-class TodoList extends React.Component<TodosProps<Props>> {
+interface State {
+  selectedTodo?: TodosTodos,
+  selectedUser: string
+}
+
+class TodoList extends React.Component<TodosProps<Props>, State> {
+
+  readonly state: State = {
+    selectedUser: '7a0bd056-7845-4250-89bc-84c9df362774',
+  };
+
   componentWillMount() {
-    const { subscribeToMore } = this.props.data;
+    const {subscribeToMore} = this.props.data;
     subscribeToMore({
       document: TODOS_CHANGES,
-      updateQuery: (prev, { subscriptionData }) => {
+      updateQuery: (prev, {subscriptionData}) => {
         if (!subscriptionData.data) {
           return prev;
         }
@@ -30,14 +42,22 @@ class TodoList extends React.Component<TodosProps<Props>> {
         });
 
         return {
-          todos: newTodos,
+          todos: newTodos.sort(it => it.id),
         };
       },
     });
   }
 
+  setUser = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    this.setState({...this.state, selectedUser: event.target.value});
+  };
+
+  setSelectedTodo = (todo: TodosTodos) => (event: any) => {
+    this.setState({...this.state, selectedTodo: todo});
+  };
+
   render() {
-    const { todos, loading, error } = this.props.data;
+    const {todos, loading, error} = this.props.data;
 
     if (loading) {
       return <p>Loading</p>;
@@ -49,8 +69,19 @@ class TodoList extends React.Component<TodosProps<Props>> {
 
     return (
       <div>
-        <div style={{ padding: 12 }}>
-          <TodoForm />
+        <div style={{padding: 12, display: 'flex', justifyContent: 'center'}}>
+          <Card>
+            <CardTitle>Select user</CardTitle>
+            <UserSelect onChange={this.setUser}/>
+          </Card>
+          <Card>
+            <CardTitle>Create todo</CardTitle>
+            <TodoForm user={this.state.selectedUser}/>
+          </Card>
+          <Card>
+            <CardTitle>Edit todo</CardTitle>
+            <EditTodo userId={this.state.selectedUser} todo={this.state.selectedTodo}/>
+          </Card>
         </div>
         <div
           style={{
@@ -60,12 +91,14 @@ class TodoList extends React.Component<TodosProps<Props>> {
           }}
         >
           {todos.map(it => (
-            <Card key={it.id} style={{ width: 300 }}>
+            <Card key={it.id} style={{width: 300}}>
               <CardTitle>{it.id}</CardTitle>
-              {it.text}
+              <p style={{textDecoration: it.done ? 'line-through' : 'initial'}}> {it.text}</p>
               <CardFooter>
                 <p>Created by {it.user.name} </p>
                 <p>at {it.createdAt}</p>
+                {it.lastEditedBy && <p>Last edit by {it.lastEditedBy.name}</p>}
+                <button onClick={this.setSelectedTodo(it)}>Edit</button>
               </CardFooter>
             </Card>
           ))}

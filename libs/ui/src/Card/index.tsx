@@ -12,6 +12,8 @@ const CardTitle = styled.h1`
   text-align: center;
   border-bottom: 1px gray solid;
   margin-bottom: 12px;
+  word-break: break-all;
+  margin-top: 0;
 `;
 
 const CardFooter = styled.h4`
@@ -22,4 +24,4 @@ const CardFooter = styled.h4`
 `;
 
 export default Card;
-export { CardTitle, CardFooter };
+export {CardTitle, CardFooter};

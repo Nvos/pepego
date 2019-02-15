@@ -12,15 +12,15 @@ type Todo struct {
 	Text         string    `json:"text"`
 	Done         bool      `json:"done"`
 	CreatedAt    time.Time `json:"createdAt"`
-	User         string      `json:"user"`
-	LastEditedBy *string     `json:"lastEditedBy"`
+	User         string    `json:"user"`
+	LastEditedBy *string   `json:"lastEditedBy"`
 }
 
 type Resolver struct {
-	Todos map[string]Todo
-	Users map[string]User
-	Observers map[string]chan Todo
-	TodosChangesMutex    sync.Mutex // nolint: structcheck
+	Todos             map[string]Todo
+	Users             map[string]User
+	Observers         map[string]chan Todo
+	TodosChangesMutex sync.Mutex // nolint: structcheck
 }
 
 type queryResolver struct{ *Resolver }
@@ -51,8 +51,14 @@ func (r *mutationResolver) EditTodo(ctx context.Context, input EditTodo) (*Todo,
 		return nil, nil
 	}
 
-	todo.Done = input.Done
-	todo.Text = input.Text
+	if input.Done != nil {
+		todo.Done = *input.Done
+	}
+
+	if input.Text != nil {
+		todo.Text = *input.Text
+	}
+
 	todo.LastEditedBy = &input.LastEditedByID
 
 	r.Resolver.Todos[input.ID] = todo
@@ -66,11 +72,10 @@ func (r *mutationResolver) EditTodo(ctx context.Context, input EditTodo) (*Todo,
 	return &todo, nil
 }
 
-
 func (r *mutationResolver) CreateUser(ctx context.Context, input NewUser) (User, error) {
-	user := User {
+	user := User{
 		Name: input.Name,
-		ID: GenerateUUID(),
+		ID:   GenerateUUID(),
 	}
 
 	r.Users[user.ID] = user
@@ -79,12 +84,12 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input NewUser) (User,
 }
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input NewTodo) (Todo, error) {
-	todo := Todo {
-		Text: input.Text,
+	todo := Todo{
+		Text:      input.Text,
 		CreatedAt: time.Now(),
-		Done: false,
-		User: input.UserID,
-		ID: GenerateUUID(),
+		Done:      false,
+		User:      input.UserID,
+		ID:        GenerateUUID(),
 	}
 
 	r.Resolver.Todos[todo.ID] = todo
@@ -130,12 +135,12 @@ func New() Config {
 			Users: map[string]User{
 				"7a0bd056-7845-4250-89bc-84c9df362774": {
 					Name: "Jeff",
-					ID: "7a0bd056-7845-4250-89bc-84c9df362774",
+					ID:   "7a0bd056-7845-4250-89bc-84c9df362774",
 				},
 
 				"7a0bd056-7845-4250-89bc-84c9df362674": {
 					Name: "Not Jeff",
-					ID: "7a0bd056-7845-4250-89bc-84c9df362674",
+					ID:   "7a0bd056-7845-4250-89bc-84c9df362674",
 				},
 			},
 			Observers: map[string]chan Todo{},
@@ -171,6 +176,18 @@ func (r *queryResolver) Users(ctx context.Context) ([]User, error) {
 	return values, nil
 }
 
+func (r *queryResolver) Todo(ctx context.Context, id string) (*Todo, error)  {
+	todo, ok := r.Resolver.Todos[id]
+
+	if ok {
+		return &todo, nil
+	}
+
+	return nil, nil
+}
+
 func GenerateUUID() string {
 	return uuid.NewV4().String()
 }
+
+
