@@ -39,6 +39,7 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	InputLogging func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -2732,6 +2733,18 @@ func (ec *executionContext) FieldMiddleware(ctx context.Context, obj interface{}
 			ret = nil
 		}
 	}()
+	rctx := graphql.GetResolverContext(ctx)
+	for _, d := range rctx.Field.Definition.Directives {
+		switch d.Name {
+		case "inputLogging":
+			if ec.directives.InputLogging != nil {
+				n := next
+				next = func(ctx context.Context) (interface{}, error) {
+					return ec.directives.InputLogging(ctx, obj, n)
+				}
+			}
+		}
+	}
 	res, err := ec.ResolverMiddleware(ctx, next)
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2757,7 +2770,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var parsedSchema = gqlparser.MustLoadSchema(
 	&ast.Source{Name: "../schema/schema.graphql", Input: `type Todo {
   id: ID!
-  text: String!
+  text: String! @inputLogging
   done: Boolean!
   user: User!
   createdAt: Time!
@@ -2800,6 +2813,8 @@ type Mutation {
 type Subscription {
   todoChanges: Todo!
 }
+
+directive @inputLogging on INPUT_OBJECT
 
 scalar Time`},
 )

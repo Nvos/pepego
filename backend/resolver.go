@@ -2,7 +2,9 @@ package backend
 
 import (
 	"context"
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/satori/go.uuid"
+	"log"
 	"sync"
 	"time"
 )
@@ -145,6 +147,9 @@ func New() Config {
 			},
 			Observers: map[string]chan Todo{},
 		},
+		Directives: DirectiveRoot{
+			InputLogging: FieldLogging,
+		},
 	}
 }
 
@@ -190,4 +195,8 @@ func GenerateUUID() string {
 	return uuid.NewV4().String()
 }
 
-
+func FieldLogging(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error) {
+	rc := graphql.GetResolverContext(ctx)
+	log.Printf("field logging: %v, %s, %T, %+v", rc.Path(), rc.Field.Name, obj, obj)
+	return next(ctx)
+}

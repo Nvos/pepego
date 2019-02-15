@@ -1,6 +1,6 @@
 type Todo {
   id: ID!
-  text: String!
+  text: String! @inputLogging
   done: Boolean!
   user: User!
   createdAt: Time!
@@ -43,5 +43,7 @@ type Mutation {
 type Subscription {
   todoChanges: Todo!
 }
+
+directive @inputLogging on INPUT_OBJECT
 
 scalar Time
