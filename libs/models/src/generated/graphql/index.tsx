@@ -43,6 +43,14 @@ export type TodosTodos = {
   id: string;
 
   text: string;
+
+  user: TodosUser;
+};
+
+export type TodosUser = {
+  __typename?: 'User';
+
+  name: string;
 };
 
 export type TodoChangesVariables = {};
@@ -61,6 +69,14 @@ export type TodoChangesTodoChanges = {
   text: string;
 
   done: boolean;
+
+  user: TodoChangesUser;
+};
+
+export type TodoChangesUser = {
+  __typename?: 'User';
+
+  name: string;
 };
 
 export type CreateTodoVariables = {
@@ -82,6 +98,14 @@ export type CreateTodoCreateTodo = {
   text: string;
 
   done: boolean;
+
+  user: CreateTodoUser;
+};
+
+export type CreateTodoUser = {
+  __typename?: 'User';
+
+  name: string;
 };
 
 import * as ReactApollo from 'react-apollo';
@@ -98,6 +122,9 @@ export const TodosDocument = gql`
     todos {
       id
       text
+      user {
+        name
+      }
     }
   }
 `;
@@ -140,6 +167,9 @@ export const TodoChangesDocument = gql`
       id
       text
       done
+      user {
+        name
+      }
     }
   }
 `;
@@ -184,6 +214,9 @@ export const CreateTodoDocument = gql`
       id
       text
       done
+      user {
+        name
+      }
     }
   }
 `;

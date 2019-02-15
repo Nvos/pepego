@@ -5,6 +5,9 @@ export const TODOS = gql`
     todos {
       id
       text
+      user {
+        name
+      }
     }
   }
 `;
@@ -15,6 +18,9 @@ export const TODOS_CHANGES = gql`
       id
       text
       done
+      user {
+        name
+      }
     }
   }
 `;
@@ -25,6 +31,9 @@ export const TODO_CREATE = gql`
       id
       text
       done
+      user {
+        name
+      }
     }
   }
 `;

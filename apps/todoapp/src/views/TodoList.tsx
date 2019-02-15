@@ -2,7 +2,7 @@ import React from 'react';
 import { TodosHOC, TodosQuery, TodosVariables, TodosProps } from '@libs/models';
 import { DataProps } from 'react-apollo';
 import { TODOS_CHANGES } from '@libs/api';
-import { Card, CardTitle } from '@libs/ui';
+import { Card, CardTitle, CardFooter } from '@libs/ui';
 import { produce } from 'immer';
 import TodoForm from 'src/components/TodoForm';
 
@@ -63,6 +63,7 @@ class TodoList extends React.Component<TodosProps<Props>> {
             <Card key={it.id} style={{ width: 300 }}>
               <CardTitle>{it.id}</CardTitle>
               {it.text}
+              <CardFooter>{it.user.name}</CardFooter>
             </Card>
           ))}
         </div>

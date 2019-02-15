@@ -131,6 +131,11 @@ func New() Config {
 					Name: "Jeff",
 					ID: "7a0bd056-7845-4250-89bc-84c9df362774",
 				},
+
+				"7a0bd056-7845-4250-89bc-84c9df362674": {
+					Name: "Not Jeff",
+					ID: "7a0bd056-7845-4250-89bc-84c9df362674",
+				},
 			},
 			Observers: map[string]chan Todo{},
 		},

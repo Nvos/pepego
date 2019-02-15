@@ -14,5 +14,12 @@ const CardTitle = styled.h1`
   margin-bottom: 12px;
 `;
 
+const CardFooter = styled.h4`
+  font-weight: 500;
+  text-align: center;
+  border-top: 1px gray solid;
+  margin-top: 12px;
+`;
+
 export default Card;
-export { CardTitle };
+export { CardTitle, CardFooter };
