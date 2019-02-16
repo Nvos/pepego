@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -47,16 +48,25 @@ type ComplexityRoot struct {
 		CreateTodo func(childComplexity int, input NewTodo) int
 		EditTodo   func(childComplexity int, input EditTodo) int
 		CreateUser func(childComplexity int, input NewUser) int
+		CreateTag  func(childComplexity int, input NewTag) int
+		EditTag    func(childComplexity int, input EditTag) int
 	}
 
 	Query struct {
-		Todos func(childComplexity int) int
-		Todo  func(childComplexity int, id string) int
-		Users func(childComplexity int) int
+		Todos  func(childComplexity int) int
+		Todo   func(childComplexity int, id string) int
+		Users  func(childComplexity int) int
+		Tags   func(childComplexity int) int
+		Search func(childComplexity int, text string) int
 	}
 
 	Subscription struct {
 		TodoChanges func(childComplexity int) int
+	}
+
+	Tag struct {
+		Id   func(childComplexity int) int
+		Name func(childComplexity int) int
 	}
 
 	Todo struct {
@@ -66,6 +76,7 @@ type ComplexityRoot struct {
 		User         func(childComplexity int) int
 		CreatedAt    func(childComplexity int) int
 		LastEditedBy func(childComplexity int) int
+		Tags         func(childComplexity int) int
 	}
 
 	User struct {
@@ -78,11 +89,15 @@ type MutationResolver interface {
 	CreateTodo(ctx context.Context, input NewTodo) (Todo, error)
 	EditTodo(ctx context.Context, input EditTodo) (*Todo, error)
 	CreateUser(ctx context.Context, input NewUser) (User, error)
+	CreateTag(ctx context.Context, input NewTag) (Tag, error)
+	EditTag(ctx context.Context, input EditTag) (*Tag, error)
 }
 type QueryResolver interface {
 	Todos(ctx context.Context) ([]Todo, error)
 	Todo(ctx context.Context, id string) (*Todo, error)
 	Users(ctx context.Context) ([]User, error)
+	Tags(ctx context.Context) ([]Tag, error)
+	Search(ctx context.Context, text string) ([]SearchResult, error)
 }
 type SubscriptionResolver interface {
 	TodoChanges(ctx context.Context) (<-chan Todo, error)
@@ -91,6 +106,7 @@ type TodoResolver interface {
 	User(ctx context.Context, obj *Todo) (User, error)
 
 	LastEditedBy(ctx context.Context, obj *Todo) (*User, error)
+	Tags(ctx context.Context, obj *Todo) ([]Tag, error)
 }
 
 func field_Mutation_createTodo_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
@@ -138,6 +154,36 @@ func field_Mutation_createUser_args(rawArgs map[string]interface{}) (map[string]
 
 }
 
+func field_Mutation_createTag_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 NewTag
+	if tmp, ok := rawArgs["input"]; ok {
+		var err error
+		arg0, err = UnmarshalNewTag(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+
+}
+
+func field_Mutation_editTag_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 EditTag
+	if tmp, ok := rawArgs["input"]; ok {
+		var err error
+		arg0, err = UnmarshalEditTag(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+
+}
+
 func field_Query_todo_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	args := map[string]interface{}{}
 	var arg0 string
@@ -149,6 +195,21 @@ func field_Query_todo_args(rawArgs map[string]interface{}) (map[string]interface
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+
+}
+
+func field_Query_search_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["text"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["text"] = arg0
 	return args, nil
 
 }
@@ -247,6 +308,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(NewUser)), true
 
+	case "Mutation.createTag":
+		if e.complexity.Mutation.CreateTag == nil {
+			break
+		}
+
+		args, err := field_Mutation_createTag_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateTag(childComplexity, args["input"].(NewTag)), true
+
+	case "Mutation.editTag":
+		if e.complexity.Mutation.EditTag == nil {
+			break
+		}
+
+		args, err := field_Mutation_editTag_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditTag(childComplexity, args["input"].(EditTag)), true
+
 	case "Query.todos":
 		if e.complexity.Query.Todos == nil {
 			break
@@ -273,12 +358,45 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Users(childComplexity), true
 
+	case "Query.tags":
+		if e.complexity.Query.Tags == nil {
+			break
+		}
+
+		return e.complexity.Query.Tags(childComplexity), true
+
+	case "Query.search":
+		if e.complexity.Query.Search == nil {
+			break
+		}
+
+		args, err := field_Query_search_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Search(childComplexity, args["text"].(string)), true
+
 	case "Subscription.todoChanges":
 		if e.complexity.Subscription.TodoChanges == nil {
 			break
 		}
 
 		return e.complexity.Subscription.TodoChanges(childComplexity), true
+
+	case "Tag.id":
+		if e.complexity.Tag.Id == nil {
+			break
+		}
+
+		return e.complexity.Tag.Id(childComplexity), true
+
+	case "Tag.name":
+		if e.complexity.Tag.Name == nil {
+			break
+		}
+
+		return e.complexity.Tag.Name(childComplexity), true
 
 	case "Todo.id":
 		if e.complexity.Todo.Id == nil {
@@ -321,6 +439,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Todo.LastEditedBy(childComplexity), true
+
+	case "Todo.tags":
+		if e.complexity.Todo.Tags == nil {
+			break
+		}
+
+		return e.complexity.Todo.Tags(childComplexity), true
 
 	case "User.id":
 		if e.complexity.User.Id == nil {
@@ -441,6 +566,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "createTag":
+			out.Values[i] = ec._Mutation_createTag(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "editTag":
+			out.Values[i] = ec._Mutation_editTag(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -555,6 +687,75 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	return ec._User(ctx, field.Selections, &res)
 }
 
+// nolint: vetshadow
+func (ec *executionContext) _Mutation_createTag(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Mutation_createTag_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Mutation",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateTag(rctx, args["input"].(NewTag))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(Tag)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	return ec._Tag(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Mutation_editTag(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Mutation_editTag_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Mutation",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EditTag(rctx, args["input"].(EditTag))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*Tag)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._Tag(ctx, field.Selections, res)
+}
+
 var queryImplementors = []string{"Query"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -593,6 +794,24 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
 				out.Values[i] = ec._Query_users(ctx, field)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
+		case "tags":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_tags(ctx, field)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
+		case "search":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_search(ctx, field)
 				if out.Values[i] == graphql.Null {
 					invalid = true
 				}
@@ -769,6 +988,132 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 }
 
 // nolint: vetshadow
+func (ec *executionContext) _Query_tags(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Tags(rctx)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]Tag)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	arr1 := make(graphql.Array, len(res))
+	var wg sync.WaitGroup
+
+	isLen1 := len(res) == 1
+	if !isLen1 {
+		wg.Add(len(res))
+	}
+
+	for idx1 := range res {
+		idx1 := idx1
+		rctx := &graphql.ResolverContext{
+			Index:  &idx1,
+			Result: &res[idx1],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(idx1 int) {
+			if !isLen1 {
+				defer wg.Done()
+			}
+			arr1[idx1] = func() graphql.Marshaler {
+
+				return ec._Tag(ctx, field.Selections, &res[idx1])
+			}()
+		}
+		if isLen1 {
+			f(idx1)
+		} else {
+			go f(idx1)
+		}
+
+	}
+	wg.Wait()
+	return arr1
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_search(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Query_search_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Search(rctx, args["text"].(string))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]SearchResult)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	arr1 := make(graphql.Array, len(res))
+	var wg sync.WaitGroup
+
+	isLen1 := len(res) == 1
+	if !isLen1 {
+		wg.Add(len(res))
+	}
+
+	for idx1 := range res {
+		idx1 := idx1
+		rctx := &graphql.ResolverContext{
+			Index:  &idx1,
+			Result: &res[idx1],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(idx1 int) {
+			if !isLen1 {
+				defer wg.Done()
+			}
+			arr1[idx1] = func() graphql.Marshaler {
+
+				return ec._SearchResult(ctx, field.Selections, &res[idx1])
+			}()
+		}
+		if isLen1 {
+			f(idx1)
+		} else {
+			go f(idx1)
+		}
+
+	}
+	wg.Wait()
+	return arr1
+}
+
+// nolint: vetshadow
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -878,6 +1223,95 @@ func (ec *executionContext) _Subscription_todoChanges(ctx context.Context, field
 	}
 }
 
+var tagImplementors = []string{"Tag"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj *Tag) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, tagImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Tag")
+		case "id":
+			out.Values[i] = ec._Tag_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "name":
+			out.Values[i] = ec._Tag_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Tag_id(ctx context.Context, field graphql.CollectedField, obj *Tag) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Tag",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalID(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Tag_name(ctx context.Context, field graphql.CollectedField, obj *Tag) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Tag",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalString(res)
+}
+
 var todoImplementors = []string{"Todo"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -926,6 +1360,15 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
 				out.Values[i] = ec._Todo_lastEditedBy(ctx, field, obj)
+				wg.Done()
+			}(i, field)
+		case "tags":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Todo_tags(ctx, field, obj)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
 				wg.Done()
 			}(i, field)
 		default:
@@ -1102,6 +1545,66 @@ func (ec *executionContext) _Todo_lastEditedBy(ctx context.Context, field graphq
 	}
 
 	return ec._User(ctx, field.Selections, res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Todo_tags(ctx context.Context, field graphql.CollectedField, obj *Todo) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Todo",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Todo().Tags(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]Tag)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	arr1 := make(graphql.Array, len(res))
+	var wg sync.WaitGroup
+
+	isLen1 := len(res) == 1
+	if !isLen1 {
+		wg.Add(len(res))
+	}
+
+	for idx1 := range res {
+		idx1 := idx1
+		rctx := &graphql.ResolverContext{
+			Index:  &idx1,
+			Result: &res[idx1],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(idx1 int) {
+			if !isLen1 {
+				defer wg.Done()
+			}
+			arr1[idx1] = func() graphql.Marshaler {
+
+				return ec._Tag(ctx, field.Selections, &res[idx1])
+			}()
+		}
+		if isLen1 {
+			f(idx1)
+		} else {
+			go f(idx1)
+		}
+
+	}
+	wg.Wait()
+	return arr1
 }
 
 var userImplementors = []string{"User"}
@@ -2638,6 +3141,51 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 	return ec.___Type(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SearchResult(ctx context.Context, sel ast.SelectionSet, obj *SearchResult) graphql.Marshaler {
+	switch obj := (*obj).(type) {
+	case nil:
+		return graphql.Null
+	case User:
+		return ec._User(ctx, sel, &obj)
+	case *User:
+		return ec._User(ctx, sel, obj)
+	case Tag:
+		return ec._Tag(ctx, sel, &obj)
+	case *Tag:
+		return ec._Tag(ctx, sel, obj)
+	case Todo:
+		return ec._Todo(ctx, sel, &obj)
+	case *Todo:
+		return ec._Todo(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
+func UnmarshalEditTag(v interface{}) (EditTag, error) {
+	var it EditTag
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = graphql.UnmarshalID(v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalEditTodo(v interface{}) (EditTodo, error) {
 	var it EditTodo
 	var asMap = v.(map[string]interface{})
@@ -2672,9 +3220,44 @@ func UnmarshalEditTodo(v interface{}) (EditTodo, error) {
 			if err != nil {
 				return it, err
 			}
+		case "tags":
+			var err error
+			var rawIf1 []interface{}
+			if v != nil {
+				if tmp1, ok := v.([]interface{}); ok {
+					rawIf1 = tmp1
+				} else {
+					rawIf1 = []interface{}{v}
+				}
+			}
+			it.Tags = make([]string, len(rawIf1))
+			for idx1 := range rawIf1 {
+				it.Tags[idx1], err = graphql.UnmarshalID(rawIf1[idx1])
+			}
+			if err != nil {
+				return it, err
+			}
 		case "lastEditedById":
 			var err error
 			it.LastEditedByID, err = graphql.UnmarshalID(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalNewTag(v interface{}) (NewTag, error) {
+	var it NewTag
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = graphql.UnmarshalString(v)
 			if err != nil {
 				return it, err
 			}
@@ -2693,6 +3276,23 @@ func UnmarshalNewTodo(v interface{}) (NewTodo, error) {
 		case "text":
 			var err error
 			it.Text, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "tags":
+			var err error
+			var rawIf1 []interface{}
+			if v != nil {
+				if tmp1, ok := v.([]interface{}); ok {
+					rawIf1 = tmp1
+				} else {
+					rawIf1 = []interface{}{v}
+				}
+			}
+			it.Tags = make([]string, len(rawIf1))
+			for idx1 := range rawIf1 {
+				it.Tags[idx1], err = graphql.UnmarshalID(rawIf1[idx1])
+			}
 			if err != nil {
 				return it, err
 			}
@@ -2775,6 +3375,12 @@ var parsedSchema = gqlparser.MustLoadSchema(
   user: User!
   createdAt: Time!
   lastEditedBy: User
+  tags: [Tag!]!
+}
+
+type Tag {
+    id: ID!
+    name: String!
 }
 
 type User {
@@ -2782,14 +3388,9 @@ type User {
   name: String!
 }
 
-type Query {
-  todos: [Todo!]!
-  todo(id: ID!): Todo
-  users: [User!]!
-}
-
 input NewTodo {
   text: String!
+  tags: [ID!]!
   userId: String!
 }
 
@@ -2801,13 +3402,34 @@ input EditTodo {
   id: ID!
   text: String
   done: Boolean
+  tags: [ID!]
   lastEditedById: ID!
 }
+
+input NewTag {
+    name: String!
+}
+
+input EditTag {
+    id: ID!
+    name: String!
+}
+
 
 type Mutation {
   createTodo(input: NewTodo!): Todo!
   editTodo(input: EditTodo!): Todo
   createUser(input: NewUser!): User!
+  createTag(input: NewTag!): Tag!
+  editTag(input: EditTag!): Tag
+}
+
+type Query {
+  todos: [Todo!]!
+  todo(id: ID!): Todo
+  users: [User!]!
+  tags: [Tag!]!
+  search(text: String!): [SearchResult!]!
 }
 
 type Subscription {
@@ -2816,5 +3438,7 @@ type Subscription {
 
 directive @inputLogging on INPUT_OBJECT
 
-scalar Time`},
+scalar Time
+
+union SearchResult = User | Tag | Todo`},
 )

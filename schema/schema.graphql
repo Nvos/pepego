@@ -5,6 +5,12 @@ type Todo {
   user: User!
   createdAt: Time!
   lastEditedBy: User
+  tags: [Tag!]!
+}
+
+type Tag {
+    id: ID!
+    name: String!
 }
 
 type User {
@@ -12,14 +18,9 @@ type User {
   name: String!
 }
 
-type Query {
-  todos: [Todo!]!
-  todo(id: ID!): Todo
-  users: [User!]!
-}
-
 input NewTodo {
   text: String!
+  tags: [ID!]!
   userId: String!
 }
 
@@ -31,13 +32,34 @@ input EditTodo {
   id: ID!
   text: String
   done: Boolean
+  tags: [ID!]
   lastEditedById: ID!
 }
+
+input NewTag {
+    name: String!
+}
+
+input EditTag {
+    id: ID!
+    name: String!
+}
+
 
 type Mutation {
   createTodo(input: NewTodo!): Todo!
   editTodo(input: EditTodo!): Todo
   createUser(input: NewUser!): User!
+  createTag(input: NewTag!): Tag!
+  editTag(input: EditTag!): Tag
+}
+
+type Query {
+  todos: [Todo!]!
+  todo(id: ID!): Todo
+  users: [User!]!
+  tags: [Tag!]!
+  search(text: String!): [SearchResult!]!
 }
 
 type Subscription {
@@ -47,3 +69,5 @@ type Subscription {
 directive @inputLogging on INPUT_OBJECT
 
 scalar Time
+
+union SearchResult = User | Tag | Todo

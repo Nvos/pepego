@@ -1,8 +1,9 @@
 import {TODOS_CHANGES} from '@libs/api';
 import {TodosHOC, TodosProps, TodosTodos} from '@libs/models';
-import {Card, CardFooter, CardTitle} from '@libs/ui';
+import {Card, CardFooter, CardTitle, Tag} from '@libs/ui';
 import {produce} from 'immer';
 import React from 'react';
+import TagEditor from "src/components/TagEdit";
 import EditTodo from "src/components/TodoEdit";
 import TodoForm from 'src/components/TodoForm';
 import UserSelect from "src/components/UserSelect";
@@ -22,7 +23,7 @@ class TodoList extends React.Component<TodosProps<Props>, State> {
   };
 
   componentWillMount() {
-    const {subscribeToMore} = this.props.data;
+    const {subscribeToMore,} = this.props.data;
     subscribeToMore({
       document: TODOS_CHANGES,
       updateQuery: (prev, {subscriptionData}) => {
@@ -39,10 +40,12 @@ class TodoList extends React.Component<TodosProps<Props>, State> {
           } else {
             draft.push(newMessage);
           }
+
+          draft.sort(it => it.id)
         });
 
         return {
-          todos: newTodos.sort(it => it.id),
+          todos: newTodos,
         };
       },
     });
@@ -74,13 +77,17 @@ class TodoList extends React.Component<TodosProps<Props>, State> {
             <CardTitle>Select user</CardTitle>
             <UserSelect onChange={this.setUser}/>
           </Card>
-          <Card>
+          <Card style={{width: 400}}>
             <CardTitle>Create todo</CardTitle>
             <TodoForm user={this.state.selectedUser}/>
           </Card>
           <Card>
             <CardTitle>Edit todo</CardTitle>
             <EditTodo userId={this.state.selectedUser} todo={this.state.selectedTodo}/>
+          </Card>
+          <Card>
+            <CardTitle>Edit/Create tags</CardTitle>
+            <TagEditor/>
           </Card>
         </div>
         <div
@@ -94,6 +101,9 @@ class TodoList extends React.Component<TodosProps<Props>, State> {
             <Card key={it.id} style={{width: 300}}>
               <CardTitle>{it.id}</CardTitle>
               <p style={{textDecoration: it.done ? 'line-through' : 'initial'}}> {it.text}</p>
+              <div style={{padding: 12, display: 'flex'}}>
+                {it.tags.map(it => <Tag key={it.id}>{it.name}</Tag>)}
+              </div>
               <CardFooter>
                 <p>Created by {it.user.name} </p>
                 <p>at {it.createdAt}</p>

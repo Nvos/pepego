@@ -6,6 +6,8 @@ export type Maybe<T> = T | null;
 export interface NewTodo {
   text: string;
 
+  tags: string[];
+
   userId: string;
 }
 
@@ -16,10 +18,22 @@ export interface EditTodo {
 
   done?: Maybe<boolean>;
 
+  tags?: Maybe<string[]>;
+
   lastEditedById: string;
 }
 
 export interface NewUser {
+  name: string;
+}
+
+export interface NewTag {
+  name: string;
+}
+
+export interface EditTag {
+  id: string;
+
   name: string;
 }
 
@@ -46,11 +60,21 @@ export type TodosTodos = {
 
   done: boolean;
 
+  tags: TodosTags[];
+
   user: TodosUser;
 
   createdAt: Time;
 
   lastEditedBy: Maybe<TodosLastEditedBy>;
+};
+
+export type TodosTags = {
+  __typename?: 'Tag';
+
+  id: string;
+
+  name: string;
 };
 
 export type TodosUser = {
@@ -104,6 +128,8 @@ export type TodoChangesTodoChanges = {
 
   user: TodoChangesUser;
 
+  tags: TodoChangesTags[];
+
   createdAt: Time;
 
   lastEditedBy: Maybe<TodoChangesLastEditedBy>;
@@ -111,6 +137,14 @@ export type TodoChangesTodoChanges = {
 
 export type TodoChangesUser = {
   __typename?: 'User';
+
+  id: string;
+
+  name: string;
+};
+
+export type TodoChangesTags = {
+  __typename?: 'Tag';
 
   id: string;
 
@@ -128,6 +162,7 @@ export type TodoChangesLastEditedBy = {
 export type CreateTodoVariables = {
   text: string;
   userId: string;
+  tags: string[];
 };
 
 export type CreateTodoMutation = {
@@ -173,6 +208,7 @@ export type EditTodoVariables = {
   text?: Maybe<string>;
   done?: Maybe<boolean>;
   lastEditedByID: string;
+  tags: string[];
 };
 
 export type EditTodoMutation = {
@@ -232,11 +268,21 @@ export type TodoTodo = {
 
   done: boolean;
 
+  tags: TodoTags[];
+
   user: TodoUser;
 
   createdAt: Time;
 
   lastEditedBy: Maybe<TodoLastEditedBy>;
+};
+
+export type TodoTags = {
+  __typename?: 'Tag';
+
+  id: string;
+
+  name: string;
 };
 
 export type TodoUser = {
@@ -249,6 +295,59 @@ export type TodoUser = {
 
 export type TodoLastEditedBy = {
   __typename?: 'User';
+
+  id: string;
+
+  name: string;
+};
+
+export type CreateTagVariables = {
+  name: string;
+};
+
+export type CreateTagMutation = {
+  __typename?: 'Mutation';
+
+  createTag: CreateTagCreateTag;
+};
+
+export type CreateTagCreateTag = {
+  __typename?: 'Tag';
+
+  id: string;
+
+  name: string;
+};
+
+export type EditTagVariables = {
+  id: string;
+  name: string;
+};
+
+export type EditTagMutation = {
+  __typename?: 'Mutation';
+
+  editTag: Maybe<EditTagEditTag>;
+};
+
+export type EditTagEditTag = {
+  __typename?: 'Tag';
+
+  id: string;
+
+  name: string;
+};
+
+export type TagsVariables = {};
+
+export type TagsQuery = {
+  __typename?: 'Query';
+
+  tags: TagsTags[];
+};
+
+export type TagsTags = {
+  __typename?: 'Tag';
 
   id: string;
 
@@ -270,6 +369,10 @@ export const TodosDocument = gql`
       id
       text
       done
+      tags {
+        id
+        name
+      }
       user {
         id
         name
@@ -366,6 +469,10 @@ export const TodoChangesDocument = gql`
         id
         name
       }
+      tags {
+        id
+        name
+      }
       createdAt
       lastEditedBy {
         id
@@ -410,8 +517,8 @@ export function TodoChangesHOC<TProps, TChildProps = any>(
   >(TodoChangesDocument, operationOptions);
 }
 export const CreateTodoDocument = gql`
-  mutation CreateTodo($text: String!, $userId: String!) {
-    createTodo(input: { text: $text, userId: $userId }) {
+  mutation CreateTodo($text: String!, $userId: String!, $tags: [ID!]!) {
+    createTodo(input: { text: $text, userId: $userId, tags: $tags }) {
       id
       text
       done
@@ -470,12 +577,14 @@ export const EditTodoDocument = gql`
     $text: String
     $done: Boolean
     $lastEditedByID: ID!
+    $tags: [ID!]!
   ) {
     editTodo(
       input: {
         id: $id
         text: $text
         done: $done
+        tags: $tags
         lastEditedById: $lastEditedByID
       }
     ) {
@@ -537,6 +646,10 @@ export const TodoDocument = gql`
       id
       text
       done
+      tags {
+        id
+        name
+      }
       user {
         id
         name
@@ -581,4 +694,135 @@ export function TodoHOC<TProps, TChildProps = any>(
     TodoVariables,
     TodoProps<TChildProps>
   >(TodoDocument, operationOptions);
+}
+export const CreateTagDocument = gql`
+  mutation CreateTag($name: String!) {
+    createTag(input: { name: $name }) {
+      id
+      name
+    }
+  }
+`;
+export class CreateTagComponent extends React.Component<
+  Partial<ReactApollo.MutationProps<CreateTagMutation, CreateTagVariables>>
+> {
+  render() {
+    return (
+      <ReactApollo.Mutation<CreateTagMutation, CreateTagVariables>
+        mutation={CreateTagDocument}
+        {...(this as any)['props'] as any}
+      />
+    );
+  }
+}
+export type CreateTagProps<TChildProps = any> = Partial<
+  ReactApollo.MutateProps<CreateTagMutation, CreateTagVariables>
+> &
+  TChildProps;
+export type CreateTagMutationFn = ReactApollo.MutationFn<
+  CreateTagMutation,
+  CreateTagVariables
+>;
+export function CreateTagHOC<TProps, TChildProps = any>(
+  operationOptions:
+    | ReactApollo.OperationOption<
+        TProps,
+        CreateTagMutation,
+        CreateTagVariables,
+        CreateTagProps<TChildProps>
+      >
+    | undefined,
+) {
+  return ReactApollo.graphql<
+    TProps,
+    CreateTagMutation,
+    CreateTagVariables,
+    CreateTagProps<TChildProps>
+  >(CreateTagDocument, operationOptions);
+}
+export const EditTagDocument = gql`
+  mutation EditTag($id: ID!, $name: String!) {
+    editTag(input: { id: $id, name: $name }) {
+      id
+      name
+    }
+  }
+`;
+export class EditTagComponent extends React.Component<
+  Partial<ReactApollo.MutationProps<EditTagMutation, EditTagVariables>>
+> {
+  render() {
+    return (
+      <ReactApollo.Mutation<EditTagMutation, EditTagVariables>
+        mutation={EditTagDocument}
+        {...(this as any)['props'] as any}
+      />
+    );
+  }
+}
+export type EditTagProps<TChildProps = any> = Partial<
+  ReactApollo.MutateProps<EditTagMutation, EditTagVariables>
+> &
+  TChildProps;
+export type EditTagMutationFn = ReactApollo.MutationFn<
+  EditTagMutation,
+  EditTagVariables
+>;
+export function EditTagHOC<TProps, TChildProps = any>(
+  operationOptions:
+    | ReactApollo.OperationOption<
+        TProps,
+        EditTagMutation,
+        EditTagVariables,
+        EditTagProps<TChildProps>
+      >
+    | undefined,
+) {
+  return ReactApollo.graphql<
+    TProps,
+    EditTagMutation,
+    EditTagVariables,
+    EditTagProps<TChildProps>
+  >(EditTagDocument, operationOptions);
+}
+export const TagsDocument = gql`
+  query Tags {
+    tags {
+      id
+      name
+    }
+  }
+`;
+export class TagsComponent extends React.Component<
+  Partial<ReactApollo.QueryProps<TagsQuery, TagsVariables>>
+> {
+  render() {
+    return (
+      <ReactApollo.Query<TagsQuery, TagsVariables>
+        query={TagsDocument}
+        {...(this as any)['props'] as any}
+      />
+    );
+  }
+}
+export type TagsProps<TChildProps = any> = Partial<
+  ReactApollo.DataProps<TagsQuery, TagsVariables>
+> &
+  TChildProps;
+export function TagsHOC<TProps, TChildProps = any>(
+  operationOptions:
+    | ReactApollo.OperationOption<
+        TProps,
+        TagsQuery,
+        TagsVariables,
+        TagsProps<TChildProps>
+      >
+    | undefined,
+) {
+  return ReactApollo.graphql<
+    TProps,
+    TagsQuery,
+    TagsVariables,
+    TagsProps<TChildProps>
+  >(TagsDocument, operationOptions);
 }

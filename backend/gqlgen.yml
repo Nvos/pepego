@@ -16,6 +16,8 @@ models:
   Todo:
     model: pepego/backend.Todo
     fields:
+      tags:
+        resolver: true
       user:
         resolver: true
       lastEditedBy:

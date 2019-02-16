@@ -17,6 +17,7 @@ dependencies:
   graphql: 14.1.1
   immer: 2.0.0
   react: 16.8.2
+  react-adopt: 0.6.0
   react-apollo: 2.4.1
   react-dom: 16.8.2
   react-router-dom: 4.3.1
@@ -534,6 +535,14 @@ packages:
     dev: false
     resolution:
       integrity: sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
+  /react-adopt/0.6.0:
+    dependencies:
+      hoist-non-react-statics: 2.5.5
+      react: 16.8.2
+      react-display-name: 0.2.4
+    dev: false
+    resolution:
+      integrity: sha1-5f+QOmVdMIIhf4K8nVAzpLZPr60=
   /react-apollo/2.4.1:
     dependencies:
       fbjs: 1.0.0
@@ -550,6 +559,10 @@ packages:
       react-dom: ^15.0.0 || ^16.0.0
     resolution:
       integrity: sha512-fSaiwXzY5xRmqKuGCtkMON8paL4/rKf4pB2aSI/0Ot8tn+gJisFqZ0iz9Pxvl6MHnJm1/gjJD3X1J4KmbYN2Yw==
+  /react-display-name/0.2.4:
+    dev: false
+    resolution:
+      integrity: sha512-zvU6iouW+SWwHTyThwxGICjJYCMZFk/6r/+jmOdC7ntQoPlS/Pqb81MkxaMf2bHTSq9TN3K3zX2/ayMW/jCtyA==
   /react-dom/16.8.2:
     dependencies:
       loose-envify: 1.4.0
@@ -793,6 +806,7 @@ specifiers:
   graphql: ^14.1.1
   immer: ^2.0.0
   react: ^16.8.2
+  react-adopt: ^0.6.0
   react-apollo: ^2.4.1
   react-dom: ^16.8.2
   react-router-dom: ^4.3.1

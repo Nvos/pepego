@@ -1,5 +1,6 @@
 import {EditTodoComponent, EditTodoMutation, EditTodoVariables, TodosTodos} from '@libs/models';
 import React, {useState} from 'react';
+import TagField from "src/components/TagField";
 import {MutationChildProps} from "src/types";
 
 const EditTodo = (props: OuterProps) => (
@@ -25,6 +26,7 @@ const EditTodosInner = ((props: Props) => {
 
   const [done, setDone] = useState(props.todo.done);
   const [text, setText] = useState(props.todo.text);
+  const [tags, setTags] = useState(props.todo.tags);
 
   return <div>
     <h3>Selected {props.todo.text}</h3>
@@ -33,11 +35,12 @@ const EditTodosInner = ((props: Props) => {
         Text
         <input value={text} type={'text'} onChange={e => setText(e.target.value)}/>
       </label>
-
       <label>
         Done
         <input checked={done} type={'checkbox'} onChange={e => setDone(!done)}/>
       </label>
+      Tags
+      <TagField tags={tags} onChanged={setTags}/>
     </div>
     <button
       onClick={e => {
@@ -47,7 +50,8 @@ const EditTodosInner = ((props: Props) => {
             id: props.todo.id,
             done,
             text,
-            lastEditedByID: props.userId
+            lastEditedByID: props.userId,
+            tags: tags.map(it => it.id)
           }
         })
       }
