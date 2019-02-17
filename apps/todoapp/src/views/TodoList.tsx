@@ -118,4 +118,4 @@ class TodoList extends React.Component<TodosProps<Props>, State> {
   }
 }
 
-export default TodosHOC({})(TodoList);
+export default TodosHOC({options: {}})(TodoList);
