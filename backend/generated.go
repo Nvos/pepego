@@ -3407,7 +3407,7 @@ input EditTodo {
 }
 
 input NewTag {
-    name: String!
+    name: String! @inputLogging
 }
 
 input EditTag {
