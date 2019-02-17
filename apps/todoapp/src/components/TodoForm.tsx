@@ -1,6 +1,6 @@
-import {CreateTodoComponent, TagsTags,} from '@libs/models';
-import React, {useState} from 'react';
-import TagField from "src/components/TagField";
+import { CreateTodoComponent, TagsTags } from '@libs/models';
+import React, { useState } from 'react';
+import TagField from 'src/components/TagField';
 
 interface Props {
   user: string;
@@ -10,34 +10,37 @@ interface State {
   text: string;
 }
 
-const TodoForm: React.FunctionComponent<Props> = ({user}: Props) => {
+const TodoForm: React.FunctionComponent<Props> = ({ user }: Props) => {
   // const [text, setText] =
   const [text, setText] = useState('');
   const [tags, setTags] = useState<TagsTags[]>([]);
   console.log(tags);
   return (
     <CreateTodoComponent>
-      {(createTodo, {loading, error}) => (
+      {(createTodo, { loading, error }) => (
         <div>
-          <input onChange={e => setText(e.target.value)}/>
-          <TagField tags={tags} onChanged={setTags}/>
+          <input onChange={e => setText(e.target.value)} />
+          <TagField tags={tags} onChanged={setTags} />
           {error && 'Error!'}
-          <button onClick={e => {
-            e.preventDefault();
-            createTodo({
-              variables: {
-                userId: user,
-                text,
-                tags: tags.map(it => it.id)
-              },
-            });
-          }}>{loading ? 'Loading' : 'Add Todo'}</button>
+          <button
+            onClick={e => {
+              e.preventDefault();
+              createTodo({
+                variables: {
+                  userId: user,
+                  text,
+                  tags: tags.map(it => it.id),
+                },
+              });
+            }}
+          >
+            {loading ? 'Loading' : 'Add Todo'}
+          </button>
         </div>
       )}
     </CreateTodoComponent>
   );
-
-}
+};
 //
 // class TodoForm extends React.Component<Props, State> {
 //   readonly state: State = {

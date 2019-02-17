@@ -1,3 +1,3 @@
-import {MutateProps, MutationResult} from 'react-apollo';
+import { MutateProps, MutationResult } from 'react-apollo';
 
-export type MutationChildProps<D, V> = MutationResult<D> & MutateProps<D, V>
+export type MutationChildProps<D, V> = MutationResult<D> & MutateProps<D, V>;
