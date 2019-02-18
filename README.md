@@ -61,6 +61,11 @@ In root project directory navigate to backend and run **go run server/server.go*
   - Scss IntelliSense
   - vscode-styled-components (there's currently problem with typing generic components thus it is recomended to fork or manually update regex for interpolation start)
   - Tslint
+- Usefull browser plugins
+  - React devtools (profile rerenders and check/modify local component state)
+  - Apollo devtools (work only on chrome), view quieries, cache and query backen or view documentation
+- Usefull applications
+  - Altair - https://altair.sirmuel.design/. Desktop graphql client (something like postman for grapql)
 
 # Resources
 
